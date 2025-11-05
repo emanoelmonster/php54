@@ -1,0 +1,55 @@
+FROM centos:7
+RUN rm -f /etc/yum.repos.d/*.repo
+#COPY CentOS-Vault-6.10.repo /etc/yum.repos.d/CentOS-Vault-6.10.repo
+COPY CentOS-Vault-7.repo /etc/yum.repos.d/CentOS-Vault-7.repo
+RUN yum install -y gcc gcc-c++ make  
+RUN yum install -y epel-release
+RUN yum install -y nfs-utils wget vim libcurl freetds
+RUN yum install -y libxml2-devel libpng-devel gd-devel mysql-devel postgresql-devel httpd-devel curl-devel bzip2-devel libc-client-devel freetds-devel pgsql-devel
+RUN  yum install -y readline-devel ncurses-devel libmcrypt
+RUN yum groupinstall -y "Development Tools" 
+RUN yum install -y \
+  openssl-devel libcurl-devel libxml2-devel zlib-devel bzip2-devel \
+  libpng-devel freetype-devel gd-devel \
+  mysql-devel gmp-devel  libxslt-devel  libmcrypt-devel
+RUN wget -c -t 3 -O /usr/src/php-5.4.45.tar.gz "https://museum.php.net/php5/php-5.4.45.tar.gz" 
+RUN cd /usr/src && \
+    tar xvzf php-5.4.45.tar.gz -C . && \
+    cd php-5.4.45 && \
+    ./configure   --disable-cgi   --enable-ftp   --enable-mbstring   --enable-mysqlnd   --with-mysql=mysqlnd   --with-mysqli=mysqlnd   --with-pdo-mysql=mysqlnd   --with-curl   --with-openssl   --enable-soap   --with-zlib   --with-readline   --with-gd   --with-jpeg-dir   --with-png-dir   --with-freetype-dir --enable-pcntl --enable-shmop --enable-sockets --enable-sysvmsg --enable-sysvsem --enable-sysvshm --enable-calendar --enable-exif --with-gettext --with-gmp --with-pgsql --with-pdo-pgsql --enable-wddx --with-xsl --with-mcrypt && \
+    make && \   
+    make install 
+
+
+    ./configure   --disable-cgi   --enable-ftp   --enable-mbstring   --enable-mysqlnd   --with-mysql=mysqlnd   --with-mysqli=mysqlnd   --with-pdo-mysql=mysqlnd   --with-curl   --with-openssl   --enable-soap   --with-zlib   --with-readline   --with-gd   --with-jpeg-dir   --with-png-dir   --with-freetype-dir --enable-pcntl --enable-shmop --enable-sockets --enable-sysvmsg --enable-sysvsem --enable-sysvshm --enable-calendar --enable-exif --with-gettext --with-gmp --with-pgsql --with-pdo-pgsql --enable-wddx --with-xsl --with-mcrypt --with-bz2 \
+  --enable-zip  --with-imap=/usr \
+  --with-imap-ssl=/usr \
+  --with-kerberos=/usr
+
+
+
+
+    #editando:
+#'./configure'  '--disable-cgi' '--enable-ftp' '--enable-mbstring' '--enable-mysqlnd' '--with-mysql' '--with-mysqli' '--with-pdo-mysql' '--with-curl' '--with-openssl' '--enable-soap' '--with-png' '--with-gd' '--with-readline' '--with-zlib'
+
+
+
+#'./configure'  '--disable-cgi' '--with-apxs2=/usr/bin/apxs2' '--with-config-file-path=/etc/php5/apache2' '--with-config-file-scan-dir=/etc/php5/apache2/conf.d' '--enable-ftp' '--enable-mbstring' '--enable-mysqlnd' '--with-mysql' '--with-mysqli' '--with-pdo-mysql' '--with-curl' '--with-openssl=/usr/local/ssl' '--enable-soap' '--with-png' '--with-gd' '--with-readline' '--with-recode' '--with-zlib'
+
+
+    #COPY libphp5.so /usr/lib64/httpd/modules/libphp5.so
+#COPY pdo_pgsql.so /usr/local/lib/pdo_pgsql.so
+#COPY exif.so /usr/local/lib/exif.so
+#COPY mbstring.so /usr/local/lib/mbstring.so
+#RUN cd /usr/src/php-5.4.45 &&\
+#    make install
+#RUN rm -rf /usr/src/php-5.4.45.tar.gz /usr/src/php-5.4.45
+#COPY php.ini /usr/local/lib/php.ini
+#COPY php.conf /etc/httpd/conf.d/php.conf
+#COPY http-foreground /usr/local/bin/
+#RUN mkdir -p /home/www/webpages/iasoft/app/
+#COPY httpd.conf /etc/httpd/conf/httpd.conf
+#RUN ln -sf /dev/stdout /var/log/httpd/access_log &&\
+#    ln -sf /dev/stderr /var/log/httpd/error_log
+#EXPOSE 80
+#CMD ["http-foreground"]

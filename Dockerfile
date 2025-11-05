@@ -1,69 +1,51 @@
-FROM plutonianbe/php54-apache:latest
+FROM centos:7
+RUN rm -f /etc/yum.repos.d/*.repo
+COPY CentOS-Vault-7.repo /etc/yum.repos.d/CentOS-Vault-7.repo
+RUN yum update -y
+RUN rm -f /etc/yum.repos.d/*.repo
+COPY CentOS-Vault-7.repo /etc/yum.repos.d/CentOS-Vault-7.repo
+RUN yum install -y epel-release
+RUN yum install -y https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+RUN yum install -y \
+    openssl-devel \
+    libcurl-devel \
+    libxml2-devel \
+    zlib-devel \
+    bzip2-devel \
+    libpng-devel \
+    freetype-devel \
+    gd-devel \
+    mysql-devel \
+    gmp-devel \
+    libxslt-devel \
+    libmcrypt-devel \
+    libmcrypt \
+    impa \
+    imap-devel \
+    vim \
+    mod_ssl \
+    php-pdo \
+    php-mysql \
+    php-mcrypt \
+    php-pgsql \
+    php-gd \
+    php-xml \
+    php-mbstring \
+    php-imap \
+    php-cli \
+    php-soap \
+    php-devel \
+    php-common \
+    php \
+    php-process \
+    php-pecl-apcu-4.0.11-1.el7.x86_64 \
+    php-pecl-jsond-devel-1.4.0-1.el7.remi.5.4.x86_64 \
+    php-pecl-jsond-1.4.0-1.el7.remi.5.4.x86_64 \
+    php-pecl-json-post-1.0.0-2.el7.x86_64 \
+    php-pear-1.9.4-23.el7_9.noarch \
+    gd3php-2.3.3-7.el7.remi.x86_64
 
-RUN printf '%s\n' \
-    'deb http://archive.debian.org/debian jessie main contrib non-free' \
-    'deb http://archive.debian.org/debian jessie-updates main contrib non-free' \
-    'deb http://archive.debian.org/debian-security jessie/updates main contrib non-free' \
-    > /etc/apt/sources.list
-
-
-RUN apt-get -o Acquire::Check-Valid-Until=false update || true
-RUN apt -y -q \
-  -o Dpkg::Options::=--force-confdef \
-  -o Dpkg::Options::=--force-confold \
-  -o Acquire::AllowInsecureRepositories=true \
-  -o APT::Get::AllowUnauthenticated=true \
-  upgrade
-
-
-  RUN apt -y -q \
-    -o Dpkg::Options::=--force-confdef \
-    -o Dpkg::Options::=--force-confold \
-    -o Acquire::AllowInsecureRepositories=true \
-    -o APT::Get::AllowUnauthenticated=true \
-    install \
-    build-essential autoconf pkg-config \
-    libbz2-dev \
-    libjpeg-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    libxpm-dev \
-    libgmp-dev \
-    gettext \
-    libpq-dev \
-    libxslt1-dev \
-    libzip-dev \
-    libmcrypt-dev \
-    libmhash-dev \
-    libkrb5-dev \
-    curl ca-certificates git; \
-  rm -rf /var/lib/apt/lists/*
-
-RUN docker-php-ext-configure gd \
-    --with-freetype-dir=/usr/include/freetype2 \
-    --with-jpeg-dir=/usr 
-RUN mkdir -p /usr/local/etc/php/conf.d/
-RUN docker-php-ext-install \
-    bz2 \
-    calendar \
-    exif \
-    gd \
-    gettext 
-
-RUN docker-php-ext-install \
-    pcntl \
-    pdo_pgsql \
-    pgsql \
-    shmop \
-    sockets \
-    sysvmsg \
-    xsl \
-    zip \
-    wddx 
-
-RUN docker-php-ext-install mcrypt 
-
-
-RUN yes "" | pecl install apc-3.1.13 && docker-php-ext-enable apc
-
-ADD 99-hardening.ini /etc/php5/apache2/conf.d/99-hardening.ini
+COPY php.ini /etc/php.ini
+ADD soa.conf /etc/httpd/conf.d/soa.conf
+  EXPOSE 80
+CMD ["/usr/sbin/httpd","-DFOREGROUND"]

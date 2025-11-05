@@ -1,0 +1,117 @@
+FROM plutonianbe/php54-apache:latest
+
+RUN printf '%s\n' \
+    'deb http://archive.debian.org/debian jessie main contrib non-free' \
+    'deb http://archive.debian.org/debian jessie-updates main contrib non-free' \
+    'deb http://archive.debian.org/debian-security jessie/updates main contrib non-free' \
+    > /etc/apt/sources.list
+
+
+RUN apt -o Dpkg::Options::=--force-confdef \
+    -o Dpkg::Options::=--force-confold \
+    -o Acquire::AllowInsecureRepositories=true \
+    -o APT::Get::AllowUnauthenticated=true update || true
+
+#RUN apt -y -q \
+#  -o Dpkg::Options::=--force-confdef \
+#  -o Dpkg::Options::=--force-confold \
+#  -o Acquire::AllowInsecureRepositories=true \
+#  -o APT::Get::AllowUnauthenticated=true \
+#  upgrade
+
+
+RUN apt -y -q \
+    -o Dpkg::Options::=--force-confdef \
+    -o Dpkg::Options::=--force-confold \
+    -o Acquire::AllowInsecureRepositories=true \
+    -o APT::Get::AllowUnauthenticated=true \
+    install \
+    build-essential autoconf pkg-config \
+    libbz2-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    libxpm-dev \
+    libgmp-dev \
+    gettext \
+    libpq-dev \
+    libxslt1-dev \
+    libzip-dev \
+    libmcrypt-dev \
+    libmhash-dev \
+    libkrb5-dev \
+    vim \
+    curl \
+    ca-certificates \
+    git \
+    libc-client2007e-dev \
+    libssl-dev \
+    libmhash-dev \
+    libbz2-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    build-essential \
+    pkg-config \
+    autoconf 
+#    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p  /usr/local/etc/php/conf.d/
+
+
+RUN docker-php-ext-configure gd \
+    --with-freetype-dir=/usr/include/freetype2 \
+    --with-jpeg-dir=/usr 
+
+RUN docker-php-ext-install \
+    bz2 \
+    calendar \
+    exif \
+    gd \
+    gettext \
+    pcntl \
+    pdo_pgsql \
+    pgsql \
+    shmop \
+    sockets \
+    sysvmsg \
+    xsl \
+    zip \
+    wddx 
+
+RUN docker-php-ext-install mcrypt 
+
+
+RUN a2enmod ssl
+
+ADD 99-hardening.ini /etc/php5/apache2/conf.d/99-hardening.ini
+ADD apache2.conf /etc/apache2/
+ADD 000-default.conf /etc/apache2/sites-enabled/000-default.conf
+ADD soa.conf /etc/apache2/sites-enabled/
+ADD security.conf  /etc/apache2/sites-enabled/
+
+
+RUN rm -r /etc/php5/apache2/conf.d; ln -s /usr/local/etc/php/conf.d /etc/php5/apache2/conf.d
+
+#apt-get    -o Dpkg::Options::=--force-confdef     -o Dpkg::Options::=--force-confold     -o Acquire::AllowInsecureRepositories=true     -o APT::Get::AllowUnauthenticated=true     install -y libc-client2007e-dev libkrb5-dev libssl-dev build-essential autoconf
+
+RUN pecl install apcu-4.0.11 && \
+    echo "extension=apcu.so" > /etc/php5/apache2/conf.d/apcu.ini
+
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include --with-jpeg-dir=/usr/include && \
+    docker-php-ext-install gd
+
+
+RUN ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h && \
+    docker-php-ext-install gmp
+
+RUN pecl install jsond-1.4.0 && \
+    echo "extension=jsond.so" > /etc/php5/apache2/conf.d/jsond.ini || true
+
+RUN pecl install json_post-1.0.0 && \
+    echo "extension=json_post.so" > /etc/php5/apache2/conf.d/json_post.ini || true
+
+RUN docker-php-ext-install zip bz2 xsl
+
+ADD php.ini /etc/php5/apache2/php.ini
+
+
